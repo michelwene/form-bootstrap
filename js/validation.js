@@ -1,8 +1,8 @@
 export function Validation(input) {
-  const tipoDeInput = input.dataset.tipo;
+  const typeInput = input.dataset.tipo;
 
-  if (validadores[tipoDeInput]) {
-    validadores[tipoDeInput](input);
+  if (validators[typeInput]) {
+    validators[typeInput](input);
   }
 
   if (input.validity.valid) {
@@ -11,18 +11,18 @@ export function Validation(input) {
   } else {
     input.parentElement.classList.add("input-container--invalido");
     input.parentElement.querySelector(".input-mensagem-erro").innerHTML =
-      mostraMensagemDeErro(tipoDeInput, input);
+      showMessageError(typeInput, input);
   }
 }
 
-const tiposDeErro = [
+const TypesOfError = [
   "valueMissing",
   "typeMismatch",
   "patternMismatch",
   "customError",
 ];
 
-const mensagensDeErro = {
+const errorMessages = {
   nome: {
     valueMissing: "O campo de nome não pode estar vazio.",
   },
@@ -62,58 +62,58 @@ const mensagensDeErro = {
   },
 };
 
-const validadores = {
-  dataNascimento: (input) => validaDataNascimento(input),
-  cpf: (input) => validaCPF(input),
-  cep: (input) => recuperarCEP(input),
+const validators = {
+  dataNascimento: (input) => validDateOfBirth(input),
+  cpf: (input) => validatesCPF(input),
+  cep: (input) => retrieveZipCode(input),
 };
 
-function mostraMensagemDeErro(tipoDeInput, input) {
-  let mensagem = "";
-  tiposDeErro.forEach((erro) => {
+function showMessageError(typeOfInput, input) {
+  let message = "";
+  TypesOfError.forEach((erro) => {
     if (input.validity[erro]) {
-      mensagem = mensagensDeErro[tipoDeInput][erro];
+      message = errorMessages[typeOfInput][erro];
     }
   });
 
-  return mensagem;
+  return message;
 }
 
-function validaDataNascimento(input) {
-  const dataRecebida = new Date(input.value);
-  let mensagem = "";
+function validDateOfBirth(input) {
+  const receivedDate = new Date(input.value);
+  let message = "";
 
-  if (!maiorQue18(dataRecebida)) {
-    mensagem = "Você deve ser maior que 18 anos para se cadastrar.";
+  if (!overEighteenYearsOfAge(receivedDate)) {
+    message = "Você deve ser maior que 18 anos para se cadastrar.";
   }
 
-  input.setCustomValidity(mensagem);
+  input.setCustomValidity(message);
 }
 
-function maiorQue18(data) {
-  const dataAtual = new Date();
-  const dataMais18 = new Date(
+function overEighteenYearsOfAge(data) {
+  const atualDate = new Date();
+  const dateOverEighteen = new Date(
     data.getUTCFullYear() + 18,
     data.getUTCMonth(),
     data.getUTCDate()
   );
 
-  return dataMais18 <= dataAtual;
+  return dateOverEighteen <= atualDate;
 }
 
-function validaCPF(input) {
-  const cpfFormatado = input.value.replace(/\D/g, "");
-  let mensagem = "";
+function validatesCPF(input) {
+  const cpfFormatted = input.value.replace(/\D/g, "");
+  let message = "";
 
-  if (!checaCPFRepetido(cpfFormatado) || !checaEstruturaCPF(cpfFormatado)) {
-    mensagem = "O CPF digitado não é válido.";
+  if (!checkCpfRepeated(cpfFormatted) || !checkTheStructureCpf(cpfFormatted)) {
+    message = "O CPF digitado não é válido.";
   }
 
-  input.setCustomValidity(mensagem);
+  input.setCustomValidity(message);
 }
 
-function checaCPFRepetido(cpf) {
-  const valoresRepetidos = [
+function checkCpfRepeated(cpf) {
+  const repeatValues = [
     "00000000000",
     "11111111111",
     "22222222222",
@@ -125,49 +125,50 @@ function checaCPFRepetido(cpf) {
     "88888888888",
     "99999999999",
   ];
-  let cpfValido = true;
+  let validCpf = true;
 
-  valoresRepetidos.forEach((valor) => {
+  repeatValues.forEach((valor) => {
     if (valor == cpf) {
-      cpfValido = false;
+      validCpf = false;
     }
   });
 
-  return cpfValido;
+  return validCpf;
 }
 
-function checaEstruturaCPF(cpf) {
-  const multiplicador = 10;
+function checkTheStructureCpf(cpf) {
+  const multiplier = 10;
 
-  return checaDigitoVerificador(cpf, multiplicador);
+  return checkDigit(cpf, multiplier);
 }
 
-function checaDigitoVerificador(cpf, multiplicador) {
-  if (multiplicador >= 12) {
+function checkDigit(cpf, multiplier) {
+  if (multiplier >= 12) {
     return true;
   }
 
-  let multiplicadorInicial = multiplicador;
-  let soma = 0;
-  const cpfSemDigitos = cpf.substr(0, multiplicador - 1).split("");
-  const digitoVerificador = cpf.charAt(multiplicador - 1);
-  for (let contador = 0; multiplicadorInicial > 1; multiplicadorInicial--) {
-    soma = soma + cpfSemDigitos[contador] * multiplicadorInicial;
-    contador++;
+  let initialMultiplier = multiplier;
+  let sum = 0;
+
+  const cpfWithoutDigits = cpf.substr(0, multiplier - 1).split("");
+  const checkDigitVerific = cpf.charAt(multiplier - 1);
+  for (let counter = 0; initialMultiplier > 1; initialMultiplier--) {
+    sum = sum + cpfWithoutDigits[counter] * initialMultiplier;
+    counter++;
   }
 
-  if (digitoVerificador == confirmaDigito(soma)) {
-    return checaDigitoVerificador(cpf, multiplicador + 1);
+  if (checkDigitVerific == confirmeDigit(sum)) {
+    return checkDigit(cpf, multiplier + 1);
   }
 
   return false;
 }
 
-function confirmaDigito(soma) {
+function confirmeDigit(soma) {
   return 11 - (soma % 11);
 }
 
-function recuperarCEP(input) {
+function retrieveZipCode(input) {
   const cep = input.value.replace(/\D/g, "");
   const url = `https://viacep.com.br/ws/${cep}/json/`;
   const options = {
@@ -187,18 +188,18 @@ function recuperarCEP(input) {
           return;
         }
         input.setCustomValidity("");
-        preencheCamposComCEP(data);
+        fillZipCodeFields(data);
         return;
       });
   }
 }
 
-function preencheCamposComCEP(data) {
-  const logradouro = document.querySelector('[data-tipo="logradouro"]');
-  const cidade = document.querySelector('[data-tipo="cidade"]');
-  const estado = document.querySelector('[data-tipo="estado"]');
+function fillZipCodeFields(data) {
+  const publicArea = document.querySelector('[data-tipo="logradouro"]');
+  const city = document.querySelector('[data-tipo="cidade"]');
+  const state = document.querySelector('[data-tipo="estado"]');
 
-  logradouro.value = data.logradouro;
-  cidade.value = data.localidade;
-  estado.value = data.uf;
+  publicArea.value = data.logradouro;
+  city.value = data.localidade;
+  state.value = data.uf;
 }
